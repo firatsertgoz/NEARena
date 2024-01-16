@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8ihxk056oauq"
-path.s3tc="res://.godot/imported/firstmesh2_gobot_roughness.png-4b7e3f3a377442673a0a2fa59056a0e6.s3tc.ctex"
+path.s3tc="res://.godot/imported/firstmesh2_gobot_roughness.png-e49e1112adee8168d371dc4636fdcd84.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ generator_parameters={}
 
 [deps]
 
-source_file="res://scenes/firstmesh2_gobot_roughness.png"
-dest_files=["res://.godot/imported/firstmesh2_gobot_roughness.png-4b7e3f3a377442673a0a2fa59056a0e6.s3tc.ctex"]
+source_file="res://Scenes/firstmesh2_gobot_roughness.png"
+dest_files=["res://.godot/imported/firstmesh2_gobot_roughness.png-e49e1112adee8168d371dc4636fdcd84.s3tc.ctex"]
 
 [params]
 

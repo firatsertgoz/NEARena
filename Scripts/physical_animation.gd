@@ -9,7 +9,7 @@ extends Skeleton3D
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
 @export var max_angular_force: float = 9999.0
-@export var walk_speed: float = 0.5
+@export var walk_speed: float = 1
 
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
@@ -19,6 +19,8 @@ extends Skeleton3D
 @onready var JumpRayCast = $"Physical Bone Spine/JumpRayCast"
 @onready var BodyControlStaticBody = $"BodyControl/StaticBody3D"
 @onready var CameraPivot: Node3D
+
+
 var JumpAnimationTimer = 0.0
 var WalkAnimationTimer = 0.0
 var right_hip: PhysicalBone3D
@@ -34,11 +36,10 @@ var head: PhysicalBone3D
 var CanJump = true
 var JumpStrength = 100.0
 var LeftHandActive = false
+var RightArmActive = false
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	CameraPivot = get_node("CameraPivot")
-	#LeftLegControl = get_node("Body Control/LeftLegController")
-	#RightLegControl = get_node("Body Control/RightLegController")
 	spine = get_node("Physical Bone Spine")
 	head = get_node("Physical Bone Neck")
 	left_hip = get_node("Physical Bone LeftHip")
@@ -84,26 +85,26 @@ func walk():
 	if Input.is_physical_key_pressed(KEY_W):
 		Iswalking = true
 		spine.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		left_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		right_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
+		#left_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
+		#right_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
 
 	if Input.is_physical_key_pressed(KEY_S):
 		Iswalking = true
 		spine.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		left_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		right_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
+		#left_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
+		#right_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
 	
 	if Input.is_physical_key_pressed(KEY_D):
 		Iswalking = true
-		spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
+		#spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
+		#left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		right_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		
 	if Input.is_physical_key_pressed(KEY_A):
 		Iswalking = true
-		spine.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
+		#spine.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 		left_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
-		right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
+		#right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 	if Input.is_physical_key_pressed(KEY_SPACE):
 		if CanJump == true:
 			if JumpRayCast.is_colliding():
@@ -121,17 +122,18 @@ func walk():
 	
 func AnimateWalk():
 	WalkAnimationTimer += 0.1
-	RightLegControl.rotation.x = sin(WalkAnimationTimer)*1
-	LeftLegControl.rotation.x= -sin(WalkAnimationTimer)*1
-		
+	RightLegControl.rotation.x = sin(WalkAnimationTimer)/2
+	LeftLegControl.rotation.x= -sin(WalkAnimationTimer)/2
+	
 func AnimateJump():
 	JumpAnimationTimer += 0.1
 
 func HandleGrab():
 	if Input.is_action_pressed("left_mouse"):
-		LeftArmControl.rotation.x = CameraPivot.rotation.x*2
+		LeftArmControl.rotation_degrees.x = CameraPivot.rotation_degrees.x * +90
 		LeftHandActive = true
-		print_debug("this works")
+		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
+		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -145,8 +147,29 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		
+		LeftArmControl.rotation.x = 0
 		LeftHandActive = false
+	if Input.is_action_pressed("q"):
+		RightArmControl.rotation_degrees.x = CameraPivot.rotation_degrees.x * 2 + 90
+		RightArmActive= true
+		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
+		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	else:
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+		RightArmControl.rotation.x = 0
+		RightArmActive = false
+		
 		#LeftGrabJoint.set_node_a("")
 		#LeftGrabJoint.set_node_b("")
 		#LeftHandGrab = null
