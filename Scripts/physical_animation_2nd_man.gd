@@ -1,4 +1,4 @@
-extends Skeleton3D
+extends Node3D
 
 @export var target_skeleton: Skeleton3D
 
@@ -9,16 +9,19 @@ extends Skeleton3D
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
 @export var max_angular_force: float = 9999.0
-@export var walk_speed: float = 2
+@export var walk_speed: float = 1
 
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
 @onready var RightLegControl = $BodyControl/RightLegController
 @onready var RightArmControl = $BodyControl/RightArmController
 @onready var LeftArmControl = $BodyControl/LeftArmController
-@onready var JumpRayCast = $"Physical Bone Spine/JumpRayCast"
+@onready var NeckControl = $BodyControl/NeckController
+@onready var JumpRayCast = $Armature/Skeleton3D/JumpRayCast
 @onready var BodyControlStaticBody = $"BodyControl/StaticBody3D"
-@onready var CameraPivot: Node3D
+@onready var CameraPivot = $CameraPivot
+@onready var LeftHandIK = $Armature/Skeleton3D/LeftHand
+@onready var RightHandIK = $Armature/Skeleton3D/RightHand
 
 
 var JumpAnimationTimer = 0.0
@@ -34,28 +37,26 @@ var upper_body: PhysicalBone3D
 var Mouse_sensitivity = 0.3
 var head: PhysicalBone3D
 var CanJump = true
-var JumpStrength = 100.0
+var JumpStrength = 200.0
 var LeftHandActive = false
 var RightArmActive = false
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	CameraPivot = get_node("CameraPivot")
-	spine = get_node("Physical Bone Spine")
-	head = get_node("Physical Bone Neck")
-	left_hip = get_node("Physical Bone LeftHip")
-	right_hip =  get_node("Physical Bone RightHip")
-	upper_body = get_node("Physical Bone UpperChest")
-	lower_body =  get_node("Physical Bone LowerChest") 
-	physical_bones_start_simulation()
+	spine = get_node("Armature/Skeleton3D/Physical Bone Spine")
+	head = get_node("Armature/Skeleton3D/Physical Bone Head")
+	left_hip = get_node("Armature/Skeleton3D/Physical Bone Left_Hip")
+	right_hip =  get_node("Armature/Skeleton3D/Physical Bone Right_Hip")
+	$"Armature/Skeleton3D".physical_bones_start_simulation()
 	physics_bones = get_children().filter(func(x): return x is PhysicalBone3D)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	CameraPivot.global_transform.origin = head.global_transform.origin
 	handle_rotation()
-func _physics_process(delta):
 	walk()
 	HandleGrab()
+func _physics_process(delta):
+	pass
 
 func handle_rotation():
 	BodyControl.rotation.y = CameraPivot.rotation.y
@@ -63,6 +64,7 @@ func handle_rotation():
 	RightArmControl.rotation.y = CameraPivot.rotation.y
 	LeftLegControl.rotation.y = CameraPivot.rotation.y
 	RightLegControl.rotation.y  = CameraPivot.rotation.y
+	NeckControl.rotation.y = CameraPivot.rotation.y
 
 func _input(event):
 	if Input.is_action_just_pressed("left_mouse"):
@@ -75,9 +77,6 @@ func _input(event):
 		CameraPivot.rotation_degrees.x -= event.relative.y * Mouse_sensitivity
 		CameraPivot.rotation_degrees.x = clamp(CameraPivot.rotation_degrees.x, -90, 90)
 
-
-func hookes_law(displacement: Vector3, current_velocity: Vector3, stiffness: float, damping: float) -> Vector3:
-	return (stiffness * displacement) - (damping * current_velocity)
 
 func walk():
 	Iswalking = false
@@ -95,6 +94,7 @@ func walk():
 	
 	if Input.is_physical_key_pressed(KEY_D):
 		Iswalking = true
+		
 		#spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		#left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		right_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
@@ -120,16 +120,17 @@ func walk():
 		RightLegControl.rotation.x = 0
 	
 func AnimateWalk():
-	WalkAnimationTimer += 0.2
-	RightLegControl.rotation.x = sin(WalkAnimationTimer)/2
-	LeftLegControl.rotation.x= -sin(WalkAnimationTimer)/2
+	WalkAnimationTimer += 0.1
+	RightLegControl.rotation.x = sin(WalkAnimationTimer)/2 
+	LeftLegControl.rotation.x= -sin(WalkAnimationTimer) /2
 	
 func AnimateJump():
 	JumpAnimationTimer += 0.1
 
 func HandleGrab():
 	if Input.is_action_pressed("left_mouse"):
-		LeftArmControl.rotation.x = CameraPivot.rotation.x
+		LeftArmControl.basis = CameraPivot.basis
+		#LeftHandIK.start()
 		LeftHandActive = true
 		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
 		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
@@ -148,8 +149,9 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.rotation.x = 0
 		LeftHandActive = false
-	if Input.is_action_pressed("right click"):
-		RightArmControl.rotation_degrees.x = CameraPivot.rotation_degrees.x * 2 + 90
+	if Input.is_action_pressed("right_mouse"):
+	#	RightHandIK.start()
+		#RightArmControl.rotation.x = CameraPivot.rotation.x 
 		RightArmActive= true
 		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
 		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
