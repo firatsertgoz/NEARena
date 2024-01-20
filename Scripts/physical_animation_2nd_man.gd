@@ -3,7 +3,7 @@ extends Node3D
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
 @export var max_angular_force: float = 9999.0
-@export var walk_speed: float = 10
+@export var walk_speed: float = 5
 
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
@@ -120,8 +120,8 @@ func walk(delta):
 	
 func AnimateWalk():
 	WalkAnimationTimer += 0.1
-	#RightLegControl.rotation.x = sin(WalkAnimationTimer)/2 
-	#LeftLegControl.rotation.x= -sin(WalkAnimationTimer) /2
+	RightLegControl.rotation.x = sin(WalkAnimationTimer) 
+	LeftLegControl.rotation.x= -sin(WalkAnimationTimer)
 	
 func AnimateJump():
 	JumpAnimationTimer += 0.1
@@ -130,7 +130,7 @@ func HandleGrab():
 	if Input.is_action_pressed("left_mouse"):
 		LeftArmControl.rotation.y = - 1.5
 		LeftArmControl.rotation.x = CameraPivot.rotation.x
-		#LeftHandIK.start()
+
 		LeftHandActive = true
 		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
 		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
@@ -149,8 +149,9 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftHandActive = false
+		BodyControl.rotation.x = 0
 	if Input.is_action_pressed("right_mouse"):
-	#	RightHandIK.start()
+
 		RightArmControl.rotation.y = - 1.5
 		RightArmControl.rotation.x = CameraPivot.rotation.x
 		RightArmActive= true
@@ -170,6 +171,7 @@ func HandleGrab():
 		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		RightArmActive = false
+		BodyControl.rotation.x = 0
 		
 		#LeftGrabJoint.set_node_a("")
 		#LeftGrabJoint.set_node_b("")
