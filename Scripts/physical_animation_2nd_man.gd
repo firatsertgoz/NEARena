@@ -25,6 +25,8 @@ extends Node3D
 @export var plane: MeshInstance3D
 
 
+signal box_entered
+
 var JumpAnimationTimer = 0.0
 var WalkAnimationTimer = 0.0
 var right_hip: PhysicalBone3D
@@ -85,29 +87,19 @@ func walk(delta):
 	Iswalking = false
 	if Input.is_physical_key_pressed(KEY_W):
 		Iswalking = true
-		#spine.apply_central_impulse(-spine.transform.basis.z * walk_speed)
 		spine.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		#left_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		#right_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
 
 	if Input.is_physical_key_pressed(KEY_S):
 		Iswalking = true
 		spine.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		#left_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		#right_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
 	
 	if Input.is_physical_key_pressed(KEY_D):
 		Iswalking = true
-		
-		#spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		#left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 		
 	if Input.is_physical_key_pressed(KEY_A):
 		Iswalking = true
-		#spine.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 		left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		#right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 	if Input.is_physical_key_pressed(KEY_SPACE):
 		if CanJump == true:
 			if JumpRayCast.is_colliding():
@@ -186,12 +178,9 @@ func HandleGrab():
 
 
 func _on_RightHand_3d_body_entered(b):
-	print_debug("This is the right hand Area")
 	if RightHandActive:
-		print_debug("This is the right hand Area and Active")
 		if b.is_in_group("CanGrab"):
 			if RightHandGrab == null:
-				print_debug("This is the right hand Area and touching")
 				RightGrabJoint.set_node_a(RightLowerArm.get_path())
 				RightGrabJoint.set_node_b(b.get_path())
 				RightHandGrab = b
@@ -200,9 +189,18 @@ func _on_RightHand_3d_body_entered(b):
 func _on_LeftHand_3d_body_entered(b):
 	if LeftHandActive:
 		if b.is_in_group("CanGrab"):
-			print_debug("This is the left hand Area")
 			if LeftHandGrab == null:
 				LeftGrabJoint.set_node_a(LeftLowerArm.get_path())
 				LeftGrabJoint.set_node_b(b.get_path())
 				LeftHandGrab = b # Replace with function body.
-## Calculate hit impact
+
+
+
+
+
+func _on_Body_3d_body_entered(body):
+	if body.is_in_group("CanGrab"):
+		if body.name == "Box":
+			box_entered.emit()
+				
+			#body. # Replace with function body.
