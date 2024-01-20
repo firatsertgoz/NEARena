@@ -137,8 +137,6 @@ func HandleGrab():
 		LeftArmControl.rotation.x = CameraPivot.rotation.x
 
 		LeftHandActive = true
-		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -159,13 +157,12 @@ func HandleGrab():
 		LeftGrabJoint.set_node_a("")
 		LeftGrabJoint.set_node_b("")
 		LeftHandGrab = null
+		
 	if Input.is_action_pressed("right_mouse"):
 
 		RightArmControl.rotation.y = - 1.5
 		RightArmControl.rotation.x = CameraPivot.rotation.x
 		RightHandActive= true
-		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -187,22 +184,25 @@ func HandleGrab():
 		RightHandGrab = null
 
 
-## Calculate hit impact
 
-
-func _on_RightHand_body_entered(b):
+func _on_RightHand_3d_body_entered(b):
+	print_debug("This is the right hand Area")
 	if RightHandActive:
+		print_debug("This is the right hand Area and Active")
 		if b.is_in_group("CanGrab"):
 			if RightHandGrab == null:
+				print_debug("This is the right hand Area and touching")
 				RightGrabJoint.set_node_a(RightLowerArm.get_path())
 				RightGrabJoint.set_node_b(b.get_path())
 				RightHandGrab = b
 
 
-func _on_LeftHand_body_entered(b):
+func _on_LeftHand_3d_body_entered(b):
 	if LeftHandActive:
 		if b.is_in_group("CanGrab"):
+			print_debug("This is the left hand Area")
 			if LeftHandGrab == null:
 				LeftGrabJoint.set_node_a(LeftLowerArm.get_path())
 				LeftGrabJoint.set_node_b(b.get_path())
-				LeftHandGrab = b
+				LeftHandGrab = b # Replace with function body.
+## Calculate hit impact
