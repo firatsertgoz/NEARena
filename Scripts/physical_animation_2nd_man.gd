@@ -1,16 +1,9 @@
 extends Node3D
 
-@export var target_skeleton: Skeleton3D
-@export var move_speed: float = 5.0
-@export var turn_speed: float = 3.0
-@export var linear_spring_stiffness: float = 100.0
-@export var linear_spring_damping: float = 10.0
-@export var max_linear_force: float = 9999.0
-
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
 @export var max_angular_force: float = 9999.0
-@export var walk_speed: float = 5
+@export var walk_speed: float = 10
 
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
@@ -20,10 +13,11 @@ extends Node3D
 @onready var NeckControl = $BodyControl/NeckController
 @onready var JumpRayCast = $Armature/Skeleton3D/JumpRayCast
 @onready var BodyControlStaticBody = $"BodyControl/StaticBody3D"
-#@onready var CameraPivot = $Armature/Skeleton3D/CameraPivot
+@onready var CameraPivot = $CameraPivot
 @onready var LeftHandIK = $Armature/Skeleton3D/LeftHand
 @onready var RightHandIK = $Armature/Skeleton3D/RightHand
 @onready var Torso = $"Armature/Skeleton3D/Physical Bone Torso"
+@onready var TorsoRB = $"Armature/Skeleton3D/Physical Bone Torso/RigidBody3D"
 
 @export var plane: MeshInstance3D
 
@@ -55,7 +49,7 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	#CameraPivot.global_transform.origin = head.global_transform.origin
+	CameraPivot.global_transform.origin = head.global_transform.origin
 	handle_rotation()
 	
 	HandleGrab()
@@ -64,13 +58,7 @@ func _physics_process(delta):
 	pass
 
 func handle_rotation():
-	#rotation.y  = CameraPivot.rotation.y
-	#BodyControl.rotation.y = CameraPivot.global_rotation.y
-	#LeftArmControl.rotation.y = CameraPivot.global_rotation.y
-	#RightArmControl.rotation.y = CameraPivot.global_rotation.y
-	#LeftLegControl.rotation.y = CameraPivot.global_rotation.y
-	#RightLegControl.rotation.y  = CameraPivot.global_rotation.y
-	#NeckControl.rotation.y = CameraPivot.global_rotation.y
+	BodyControl.rotation.y = CameraPivot.rotation.y
 	pass
 
 func _input(event):
@@ -81,29 +69,25 @@ func _input(event):
 	
 		
 	if event is InputEventMouseMotion:
-		#CameraPivot.rotation_degrees.y -= event.relative.x * Mouse_sensitivity
-		#CameraPivot.rotation_degrees.x -= event.relative.y * Mouse_sensitivity
-		#CameraPivot.rotation_degrees.x = clamp(CameraPivot.rotation_degrees.x, -90, 90)
+		CameraPivot.rotation_degrees.y -= event.relative.x * Mouse_sensitivity
+		CameraPivot.rotation_degrees.x -= event.relative.y * Mouse_sensitivity
+		CameraPivot.rotation_degrees.x = clamp(CameraPivot.rotation_degrees.x, -90, 90)
 		pass
 
 
 func walk(delta):
-	var dir = Input.get_axis('ui_down', 'ui_up')
-	translate(Vector3(0, 0, -dir) * move_speed * delta)
-	
-	var a_dir = Input.get_axis('e', 'q')
-	rotate_object_local(Vector3.UP, a_dir * turn_speed * delta)
 	
 	Iswalking = false
 	if Input.is_physical_key_pressed(KEY_W):
 		Iswalking = true
-		spine.apply_central_impulse(-spine.transform.basis.z * walk_speed)
+		#spine.apply_central_impulse(-spine.transform.basis.z * walk_speed)
+		spine.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
 		#left_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
 		#right_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
 
 	if Input.is_physical_key_pressed(KEY_S):
 		Iswalking = true
-		spine.apply_central_impulse(spine.transform.basis.z * walk_speed)
+		spine.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
 		#left_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
 		#right_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
 	
@@ -112,12 +96,12 @@ func walk(delta):
 		
 		#spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		#left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		right_hip.apply_central_impulse(right_hip.transform.basis.x * walk_speed)
+		right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 		
 	if Input.is_physical_key_pressed(KEY_A):
 		Iswalking = true
 		#spine.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
-		left_hip.apply_central_impulse(-left_hip.transform.basis.x * walk_speed)
+		left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
 		#right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
 	if Input.is_physical_key_pressed(KEY_SPACE):
 		if CanJump == true:
@@ -131,32 +115,32 @@ func walk(delta):
 		AnimateWalk()
 		pass
 	else:
-		pass
 		LeftLegControl.rotation.x = 0
 		RightLegControl.rotation.x = 0
 	
 func AnimateWalk():
 	WalkAnimationTimer += 0.1
-	RightLegControl.rotation.x = sin(WalkAnimationTimer)/2 
-	LeftLegControl.rotation.x= -sin(WalkAnimationTimer) /2
+	#RightLegControl.rotation.x = sin(WalkAnimationTimer)/2 
+	#LeftLegControl.rotation.x= -sin(WalkAnimationTimer) /2
 	
 func AnimateJump():
 	JumpAnimationTimer += 0.1
 
 func HandleGrab():
 	if Input.is_action_pressed("left_mouse"):
-		LeftArmControl.rotation.y = 90
-		#LeftArmControl.rotation.y = CameraPivot.rotation.y
+		LeftArmControl.rotation.y = - 1.5
+		LeftArmControl.rotation.x = CameraPivot.rotation.x
 		#LeftHandIK.start()
 		LeftHandActive = true
-		#print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		#print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
+		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
+		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+
 	else:
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
@@ -167,10 +151,11 @@ func HandleGrab():
 		LeftHandActive = false
 	if Input.is_action_pressed("right_mouse"):
 	#	RightHandIK.start()
-		RightArmControl.rotation.y = -90
+		RightArmControl.rotation.y = - 1.5
+		RightArmControl.rotation.x = CameraPivot.rotation.x
 		RightArmActive= true
-		#print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		#print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
+		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
+		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -189,3 +174,6 @@ func HandleGrab():
 		#LeftGrabJoint.set_node_a("")
 		#LeftGrabJoint.set_node_b("")
 		#LeftHandGrab = null
+
+
+## Calculate hit impact

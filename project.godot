@@ -32,7 +32,7 @@ window/size/always_on_top=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/orbit_camera/plugin.cfg", "res://addons/phantom_camera/plugin.cfg")
+enabled=PackedStringArray("res://addons/third-person-camera/plugin.cfg")
 
 [filesystem]
 
