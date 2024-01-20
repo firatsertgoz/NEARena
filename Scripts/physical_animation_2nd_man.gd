@@ -18,7 +18,10 @@ extends Node3D
 @onready var RightHandIK = $Armature/Skeleton3D/RightHand
 @onready var Torso = $"Armature/Skeleton3D/Physical Bone Torso"
 @onready var TorsoRB = $"Armature/Skeleton3D/Physical Bone Torso/RigidBody3D"
-
+@onready var RightLowerArm = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm"
+@onready var LeftLowerArm = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm"
+@onready var LeftGrabJoint = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm/GrabJoint"
+@onready var RightGrabJoint = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm/GrabJoint"
 @export var plane: MeshInstance3D
 
 
@@ -37,7 +40,9 @@ var head: PhysicalBone3D
 var CanJump = true
 var JumpStrength = 200.0
 var LeftHandActive = false
-var RightArmActive = false
+var RightHandActive = false
+var LeftHandGrab = null
+var RightHandGrab = null
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	spine = get_node("Armature/Skeleton3D/Physical Bone Spine")
@@ -150,11 +155,15 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftHandActive = false
 		BodyControl.rotation.x = 0
+		
+		LeftGrabJoint.set_node_a("")
+		LeftGrabJoint.set_node_b("")
+		LeftHandGrab = null
 	if Input.is_action_pressed("right_mouse"):
 
 		RightArmControl.rotation.y = - 1.5
 		RightArmControl.rotation.x = CameraPivot.rotation.x
-		RightArmActive= true
+		RightHandActive= true
 		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
 		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
 		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -170,12 +179,30 @@ func HandleGrab():
 		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmActive = false
+		RightHandActive = false
 		BodyControl.rotation.x = 0
 		
-		#LeftGrabJoint.set_node_a("")
-		#LeftGrabJoint.set_node_b("")
-		#LeftHandGrab = null
+		RightGrabJoint.set_node_a("")
+		RightGrabJoint.set_node_b("")
+		RightHandGrab = null
 
 
 ## Calculate hit impact
+
+
+func _on_RightHand_body_entered(b):
+	if RightHandActive:
+		if b.is_in_group("CanGrab"):
+			if RightHandGrab == null:
+				RightGrabJoint.set_node_a(RightLowerArm.get_path())
+				RightGrabJoint.set_node_b(b.get_path())
+				RightHandGrab = b
+
+
+func _on_LeftHand_body_entered(b):
+	if LeftHandActive:
+		if b.is_in_group("CanGrab"):
+			if LeftHandGrab == null:
+				LeftGrabJoint.set_node_a(LeftLowerArm.get_path())
+				LeftGrabJoint.set_node_b(b.get_path())
+				LeftHandGrab = b
