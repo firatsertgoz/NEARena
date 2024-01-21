@@ -23,10 +23,12 @@ extends Node3D
 @onready var LeftGrabJoint = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm/GrabJoint"
 @onready var RightGrabJoint = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm/GrabJoint"
 @export var plane: MeshInstance3D
-
-
+@export var totalHeadDamageTreshold: float = 0.03
+@export var knocked_out: bool = false
 signal box_entered
 
+
+var totalHeadDamage = 0.0
 var JumpAnimationTimer = 0.0
 var WalkAnimationTimer = 0.0
 var right_hip: PhysicalBone3D
@@ -124,7 +126,7 @@ func AnimateJump():
 	JumpAnimationTimer += 0.1
 
 func HandleGrab():
-	if Input.is_action_pressed("left_mouse"):
+	if (Input.is_action_pressed("left_mouse") && knocked_out != true):
 		LeftArmControl.rotation.y = - 1.5
 		LeftArmControl.rotation.x = CameraPivot.rotation.x
 
@@ -150,7 +152,7 @@ func HandleGrab():
 		LeftGrabJoint.set_node_b("")
 		LeftHandGrab = null
 		
-	if Input.is_action_pressed("right_mouse"):
+	if (Input.is_action_pressed("right_mouse")  && knocked_out != true):
 
 		RightArmControl.rotation.y = - 1.5
 		RightArmControl.rotation.x = CameraPivot.rotation.x
@@ -226,4 +228,38 @@ func _on_Head_3d_body_entered(body):
 			#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 			#await get_tree().create_timer(0.5).timeout
 
-#func ragdoll(controller: Node3D )
+func ragdoll():
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	await get_tree().create_timer(5).timeout
+	knocked_out = false
+	active_ragdoll()
+		
+func active_ragdoll():
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+
+func _on_head_rigid_total_force_signal_with_body(force, body):
+	print_debug(force,"box owner", body.owner, "my owner", owner)
+	if(body.owner != owner):
+		totalHeadDamage += force
+		print_debug(totalHeadDamage)
+		if(totalHeadDamage >= totalHeadDamageTreshold):
+			knocked_out = true
+			ragdoll()
+	pass # Replace with function body.
