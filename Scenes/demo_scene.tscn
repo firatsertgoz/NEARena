@@ -531,7 +531,7 @@ transform = Transform3D(1, 5.99357e-10, 1.45519e-11, 5.82077e-11, -0.026177, 0.9
 target_position = Vector3(2.08165e-12, -1.185, 2.08165e-12)
 
 [node name="Physical Bone LowerChest" type="PhysicalBone3D" parent="Player-Skeleton/Armature/Skeleton3D"]
-transform = Transform3D(0.842377, -0.000132383, -1.76511e-07, 1.13433e-08, -0.000522447, -0.842569, 0.000183513, 1.00015, -0.00066143, -0.00884008, 0.441539, 0.00111054)
+transform = Transform3D(0.842377, -0.000132383, -1.76322e-07, 1.11545e-08, -0.000522447, -0.842569, 0.000183513, 1.00015, -0.00066143, -0.00884008, 0.441539, 0.00111054)
 joint_type = 5
 joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000323341, -0.000994448, 0.175356)
 body_offset = Transform3D(0.842377, -0.000132622, -1.76164e-07, 1.11703e-08, -0.000522361, -0.842569, 0.000183714, 1.00015, -0.000661358, 0.000272274, 0.147749, 0.00111063)
@@ -605,7 +605,7 @@ transform = Transform3D(1, -4.06711e-17, 5.68434e-14, -5.68434e-14, -1.42109e-14
 shape = SubResource("CylinderShape3D_wc8ll")
 
 [node name="Physical Bone UpperChest" type="PhysicalBone3D" parent="Player-Skeleton/Armature/Skeleton3D"]
-transform = Transform3D(0.842386, -0.000132104, 4.03493e-07, 9.69223e-07, -0.000515592, -0.842583, 0.000183711, 1.00015, -0.000659484, -0.00888085, 0.715178, -0.0268484)
+transform = Transform3D(0.842386, -0.000132104, 4.03682e-07, 9.69034e-07, -0.000515592, -0.842583, 0.000183711, 1.00015, -0.000659484, -0.00888085, 0.715178, -0.0268484)
 joint_type = 5
 joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000270665, 0.0269548, 0.167542)
 body_offset = Transform3D(0.842386, -0.000132343, 4.03839e-07, 9.6905e-07, -0.000515506, -0.842583, 0.000183912, 1.00015, -0.000659412, 0.000231504, 0.141182, -0.0268483)
@@ -679,7 +679,7 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
 shape = SubResource("CylinderShape3D_q1w8b")
 
 [node name="Physical Bone Neck" type="PhysicalBone3D" parent="Player-Skeleton/Armature/Skeleton3D"]
-transform = Transform3D(0.848895, 0.000110944, 4.53608e-07, 3.67559e-07, -0.000465114, -0.848215, -8.88102e-05, 1.00004, -0.000572738, -0.00929689, 1.05085, -0.0296928)
+transform = Transform3D(0.848895, 0.000110944, 4.53798e-07, 3.67369e-07, -0.000465114, -0.848215, -8.88102e-05, 1.00004, -0.000572738, -0.00929689, 1.05085, -0.0296928)
 joint_type = 5
 joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000213372, 0.0298228, 0.229134)
 body_offset = Transform3D(0.848895, 0.000110706, 4.53935e-07, 3.67361e-07, -0.000465028, -0.848215, -8.86078e-05, 1.00004, -0.000572665, -0.000184536, 0.194369, -0.0296928)
@@ -901,7 +901,7 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
 shape = SubResource("CylinderShape3D_c25un")
 
 [node name="Physical Bone RightLowerArm" type="PhysicalBone3D" parent="Player-Skeleton/Armature/Skeleton3D"]
-transform = Transform3D(-0.990427, -0.158522, -0.0117276, -0.00357659, -0.0551743, 0.998697, -0.147664, 1.03493, 0.0544644, 0.646181, -0.0950809, -0.0483766)
+transform = Transform3D(-0.990427, -0.158522, -0.0117276, -0.00357655, -0.0551743, 0.998697, -0.147664, 1.03493, 0.0544644, 0.646181, -0.0950813, -0.0483766)
 joint_type = 5
 joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.014827, 0.0218064, 0.518962)
 body_offset = Transform3D(1.00138, 0.00511533, 5.69038e-07, -3.65078e-07, -0.0032743, -1.00025, -0.000708491, 1.04844, -0.000144348, -0.0149593, 0.519163, -0.0227773)
@@ -1125,7 +1125,7 @@ shape = SubResource("CylinderShape3D_2tv5v")
 [node name="Physical Bone LeftLowerArm" type="PhysicalBone3D" parent="Player-Skeleton/Armature/Skeleton3D"]
 transform = Transform3D(-0.998827, 0.0018863, 0.0484483, 0.0483957, 0.00218988, 0.998495, 0.00166643, 0.992187, -0.00230302, -0.577777, 0.516352, 0.00097008)
 joint_type = 5
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00646363, 0.000223523, -0.0241168)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00646363, 0.000223522, -0.0241168)
 body_offset = Transform3D(1, -0.000770525, 6.12899e-05, 0.000133924, 0.000227475, -0.999672, 0.000650878, 0.992191, 0.000222129, -0.00646198, -0.0241098, -0.000220627)
 bone_name = "RightLowerArm.001"
 joint_constraints/x/linear_limit_enabled = true

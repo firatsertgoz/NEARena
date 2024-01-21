@@ -201,6 +201,29 @@ func _on_LeftHand_3d_body_entered(b):
 func _on_Body_3d_body_entered(body):
 	if body.is_in_group("CanGrab"):
 		if body.name == "Box":
+			print_debug("We are in head")
 			box_entered.emit()
 				
 			#body. # Replace with function body.
+
+
+func _on_Head_3d_body_entered(body):
+	if body.is_in_group("CanGrab"):
+		if body.name == "Box":
+			pass
+			#BodyControl.get_node("Body6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#BodyControl.get_node("Body6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#BodyControl.get_node("Body6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#
+			#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#await get_tree().create_timer(0.5).timeout
+
+#func ragdoll(controller: Node3D )
