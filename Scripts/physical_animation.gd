@@ -1,26 +1,34 @@
-extends Skeleton3D
-
-@export var target_skeleton: Skeleton3D
-
-@export var linear_spring_stiffness: float = 100.0
-@export var linear_spring_damping: float = 10.0
-@export var max_linear_force: float = 9999.0
+extends Node3D
 
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
 @export var max_angular_force: float = 9999.0
-@export var walk_speed: float = 2
+@export var walk_speed: float = 5
 
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
 @onready var RightLegControl = $BodyControl/RightLegController
 @onready var RightArmControl = $BodyControl/RightArmController
 @onready var LeftArmControl = $BodyControl/LeftArmController
-@onready var JumpRayCast = $"Physical Bone Spine/JumpRayCast"
+@onready var NeckControl = $BodyControl/NeckController
+@onready var JumpRayCast = $Armature/Skeleton3D/JumpRayCast
 @onready var BodyControlStaticBody = $"BodyControl/StaticBody3D"
-@onready var CameraPivot: Node3D
+
+@onready var LeftHandIK = $Armature/Skeleton3D/LeftHand
+@onready var RightHandIK = $Armature/Skeleton3D/RightHand
+@onready var Torso = $"Armature/Skeleton3D/Physical Bone Torso"
+@onready var TorsoRB = $"Armature/Skeleton3D/Physical Bone Torso/RigidBody3D"
+@onready var RightLowerArm = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm"
+@onready var LeftLowerArm = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm"
+@onready var LeftGrabJoint = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm/GrabJoint"
+@onready var RightGrabJoint = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm/GrabJoint"
+@export var plane: MeshInstance3D
+@export var totalHeadDamageTreshold: float = 0.03
+@export var knocked_out: bool = false
+signal box_entered
 
 
+var totalHeadDamage = 0.0
 var JumpAnimationTimer = 0.0
 var WalkAnimationTimer = 0.0
 var right_hip: PhysicalBone3D
@@ -34,141 +42,59 @@ var upper_body: PhysicalBone3D
 var Mouse_sensitivity = 0.3
 var head: PhysicalBone3D
 var CanJump = true
-var JumpStrength = 100.0
+var JumpStrength = 200.0
 var LeftHandActive = false
-var RightArmActive = false
+var RightHandActive = false
+var LeftHandGrab = null
+var RightHandGrab = null
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	CameraPivot = get_node("CameraPivot")
-	spine = get_node("Physical Bone Spine")
-	head = get_node("Physical Bone Neck")
-	left_hip = get_node("Physical Bone LeftHip")
-	right_hip =  get_node("Physical Bone RightHip")
-	upper_body = get_node("Physical Bone UpperChest")
-	lower_body =  get_node("Physical Bone LowerChest") 
-	physical_bones_start_simulation()
+	spine = get_node("Armature/Skeleton3D/Physical Bone Spine")
+	head = get_node("Armature/Skeleton3D/Physical Bone Head")
+	left_hip = get_node("Armature/Skeleton3D/Physical Bone Left_Hip")
+	right_hip =  get_node("Armature/Skeleton3D/Physical Bone Right_Hip")
+	$"Armature/Skeleton3D".physical_bones_start_simulation()
 	physics_bones = get_children().filter(func(x): return x is PhysicalBone3D)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	CameraPivot.global_transform.origin = head.global_transform.origin
-	handle_rotation()
+	pass
 func _physics_process(delta):
-	walk()
-	HandleGrab()
 
-func handle_rotation():
-	BodyControl.rotation.y = CameraPivot.rotation.y
-	LeftArmControl.rotation.y = CameraPivot.rotation.y
-	RightArmControl.rotation.y = CameraPivot.rotation.y
-	LeftLegControl.rotation.y = CameraPivot.rotation.y
-	RightLegControl.rotation.y  = CameraPivot.rotation.y
+	pass
 
-func _input(event):
-	if Input.is_action_just_pressed("left_mouse"):
-		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)	
-	if Input.is_action_just_pressed("ui_cancel"):
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+func ragdoll():
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#LeftLegControl.get_node("LeftUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+			#
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	#RightLegControl.get_node("RightUpperLeg6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
+	await get_tree().create_timer(5).timeout
+	knocked_out = false
+	active_ragdoll()
 		
-	if event is InputEventMouseMotion:
-		CameraPivot.rotation_degrees.y -= event.relative.x * Mouse_sensitivity
-		CameraPivot.rotation_degrees.x -= event.relative.y * Mouse_sensitivity
-		CameraPivot.rotation_degrees.x = clamp(CameraPivot.rotation_degrees.x, -90, 90)
+func active_ragdoll():
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	BodyControl.get_node("Body6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
+	NeckControl.get_node("NeckGeneric6DOFJoint").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 
-
-func hookes_law(displacement: Vector3, current_velocity: Vector3, stiffness: float, damping: float) -> Vector3:
-	return (stiffness * displacement) - (damping * current_velocity)
-
-func walk():
-	Iswalking = false
-	if Input.is_physical_key_pressed(KEY_W):
-		Iswalking = true
-		spine.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		#left_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-		#right_hip.apply_central_impulse(-BodyControl.transform.basis.z * walk_speed)
-
-	if Input.is_physical_key_pressed(KEY_S):
-		Iswalking = true
-		spine.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		#left_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-		#right_hip.apply_central_impulse(BodyControl.transform.basis.z * walk_speed)
-	
-	if Input.is_physical_key_pressed(KEY_D):
-		Iswalking = true
-		#spine.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		#left_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		right_hip.apply_central_impulse(BodyControl.transform.basis.x * walk_speed)
-		
-	if Input.is_physical_key_pressed(KEY_A):
-		Iswalking = true
-		#spine.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
-		left_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
-		#right_hip.apply_central_impulse(-BodyControl.transform.basis.x * walk_speed)
-	if Input.is_physical_key_pressed(KEY_SPACE):
-		if CanJump == true:
-			if JumpRayCast.is_colliding():
-				if JumpRayCast.get_collision_normal().y > 0.5:
-					CanJump = false
-					spine.apply_central_impulse(-spine.transform.basis.z*JumpStrength)
-					await get_tree().create_timer(0.5).timeout
-					CanJump = true
-	if Iswalking:
-		AnimateWalk()
-		pass
-	else:
-		LeftLegControl.rotation.x = 0
-		RightLegControl.rotation.x = 0
-	
-func AnimateWalk():
-	WalkAnimationTimer += 0.2
-	RightLegControl.rotation.x = sin(WalkAnimationTimer)/2
-	LeftLegControl.rotation.x= -sin(WalkAnimationTimer)/2
-	
-func AnimateJump():
-	JumpAnimationTimer += 0.1
-
-func HandleGrab():
-	if Input.is_action_pressed("left_mouse"):
-		LeftArmControl.rotation.x = CameraPivot.rotation.x
-		LeftHandActive = true
-		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-	else:
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		LeftArmControl.rotation.x = 0
-		LeftHandActive = false
-	if Input.is_action_pressed("right click"):
-		RightArmControl.rotation_degrees.x = CameraPivot.rotation_degrees.x * 2 + 90
-		RightArmActive= true
-		print_debug("Camera Rotation", CameraPivot.rotation_degrees.x)
-		print_debug("Player Rotation", LeftArmControl.rotation_degrees.x)
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-	else:
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.get_node("RightUpperArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.get_node("RightLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
-		RightArmControl.rotation.x = 0
-		RightArmActive = false
-		
-		#LeftGrabJoint.set_node_a("")
-		#LeftGrabJoint.set_node_b("")
-		#LeftHandGrab = null
+func _on_head_rigid_total_force_signal_with_body(force, body):
+	print_debug(force,"box owner", body.owner, "my owner", owner)
+	if(body.owner != owner):
+		totalHeadDamage += force
+		print_debug(totalHeadDamage)
+		if(totalHeadDamage >= totalHeadDamageTreshold):
+			knocked_out = true
+			ragdoll()
+	pass # Replace with function body.

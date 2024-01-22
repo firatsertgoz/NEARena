@@ -1,9 +1,10 @@
-[gd_scene load_steps=14 format=3 uid="uid://po63m4srixl4"]
+[gd_scene load_steps=15 format=3 uid="uid://po63m4srixl4"]
 
 [ext_resource type="PackedScene" uid="uid://0t0qb3qjq6my" path="res://Scenes/PlatformRed.tscn" id="2_4lh3q"]
 [ext_resource type="Script" path="res://Scripts/DeadZone.gd" id="4_8ry15"]
 [ext_resource type="PackedScene" uid="uid://bntx1n1c04p7c" path="res://Assets/Models/ActiveRagdoll.tscn" id="6_0f4ch"]
 [ext_resource type="Script" path="res://Scripts/GameManager.gd" id="6_8fvkd"]
+[ext_resource type="PackedScene" uid="uid://c2ia8r2fxc3qu" path="res://Assets/Models/ActiveRagdoll-work.tscn" id="7_dsfkp"]
 [ext_resource type="Texture2D" uid="uid://cnbbny7qjh2xn" path="res://Assets/Textures/coin.png" id="7_ow7xm"]
 [ext_resource type="Script" path="res://Scripts/GameUI.gd" id="7_x8whp"]
 
@@ -111,7 +112,7 @@ text = "X 3"
 label_settings = SubResource("LabelSettings_igq7x")
 
 [node name="Box" type="RigidBody3D" parent="." groups=["CanGrab"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.148594, 7.532, 0.618)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.148594, 7.532, 5.82547)
 collision_layer = 3
 collision_mask = 3
 
@@ -125,5 +126,9 @@ mesh = SubResource("BoxMesh_y7rrn")
 skeleton = NodePath("../CollisionShape3D")
 
 [node name="Player1" parent="." instance=ExtResource("6_0f4ch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.890576, 2.76187)
+
+[node name="CPU" parent="." instance=ExtResource("7_dsfkp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.66748, 2.2853, -4.40765)
 
 [connection signal="body_entered" from="DeadZone" to="DeadZone" method="_on_body_entered"]
