@@ -5,6 +5,7 @@ extends Node3D
 @export var max_angular_force: float = 9999.0
 @export var walk_speed: float = 5
 
+
 @onready var BodyControl = $BodyControl
 @onready var LeftLegControl = $BodyControl/LeftLegController
 @onready var RightLegControl = $BodyControl/RightLegController
@@ -22,12 +23,16 @@ extends Node3D
 @onready var LeftLowerArm = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm"
 @onready var LeftGrabJoint = $"Armature/Skeleton3D/Physical Bone Left_Lower_Arm/GrabJoint"
 @onready var RightGrabJoint = $"Armature/Skeleton3D/Physical Bone Right_Lower_Arm/GrabJoint"
+@onready var Skeleton = $Armature/Skeleton3D
 @export var plane: MeshInstance3D
 @export var totalHeadDamageTreshold: float = 0.03
 @export var knocked_out: bool = false
+@onready var LeftHand: SkeletonIK3D = $Armature/Skeleton3D/LeftHand
+@onready var LeftHandTarget: Marker3D = $Armature/Skeleton3D/LeftHandTarget
 signal box_entered
 
-
+var left_upper_arm: Quaternion
+var left_shoulder: Quaternion
 var totalHeadDamage = 0.0
 var JumpAnimationTimer = 0.0
 var WalkAnimationTimer = 0.0
@@ -60,10 +65,12 @@ func _ready():
 func _process(delta):
 	CameraPivot.global_transform.origin = head.global_transform.origin
 	handle_rotation()
-	
 	HandleGrab()
+
 func _physics_process(delta):
-	walk(delta)
+	if(knocked_out != true):
+		walk(delta)
+		handle_punch()
 	pass
 
 func handle_rotation():
@@ -129,7 +136,7 @@ func HandleGrab():
 	if (Input.is_action_pressed("left_mouse") && knocked_out != true):
 		LeftArmControl.rotation.y = - 1.5
 		LeftArmControl.rotation.x = CameraPivot.rotation.x
-
+		
 		LeftHandActive = true
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
@@ -137,7 +144,6 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,true)
-
 	else:
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftArmControl.get_node("LeftUpperArm6DOFJoint3D").set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
@@ -147,7 +153,8 @@ func HandleGrab():
 		LeftArmControl.get_node("LeftLowerArm6DOFJoint3D").set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_SPRING,false)
 		LeftHandActive = false
 		BodyControl.rotation.x = 0
-		
+		#left_shoulder.y = 0.0
+		#left_upper_arm.x = 0.0
 		LeftGrabJoint.set_node_a("")
 		LeftGrabJoint.set_node_b("")
 		LeftHandGrab = null
@@ -177,7 +184,33 @@ func HandleGrab():
 		RightGrabJoint.set_node_b("")
 		RightHandGrab = null
 
-
+func left_punch():
+	pass
+	#get_tree().create_tween()
+	#print_debug("We are in left punch")
+	#LeftHand = get_node("Armature/Skeleton3D/LeftHand")
+	#LeftHand.start()
+	#var left_shoulder = Skeleton.find_bone("Left_Shoulder")
+	#var left_upper_arm = Skeleton.find_bone("Left_Upper_Arm")
+	#var left_shoulder_rotation = Skeleton.get_bone_pose_rotation(left_shoulder)
+	#var left_upper_arm_rotation =  Skeleton.get_bone_pose_rotation(left_upper_arm)
+	#left_shoulder_rotation.y = 0.225
+	#left_upper_arm_rotation.x = 1.198
+	#Skeleton.set_bone_pose_rotation(left_shoulder,left_shoulder_rotation)
+	#Skeleton.set_bone_pose_rotation(left_upper_arm, left_upper_arm_rotation)
+	#Skeleton.set_bone_enabled(left_shoulder,true)
+	#Skeleton.set_bone_enabled(left_upper_arm,true)
+	#print_debug(left_shoulder_rotation)
+	
+func release_left_punch():
+	print_debug("We are leaving left punch")
+	#LeftHand.
+	#4.928
+func handle_punch():
+	if (Input.is_action_pressed("q") && knocked_out != true):
+		left_punch()
+	if (Input.is_action_just_released("q") && knocked_out != true):
+		release_left_punch()
 
 func _on_RightHand_3d_body_entered(b):
 	if RightHandActive:
